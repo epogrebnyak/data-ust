@@ -325,26 +325,24 @@ check_point = dict(date="2017-04-03"
  , BC_30YEAR = 2.98
  , BC_30YEARDISPLAY = 2.98) 
 
-def get_datapoints(xml_content):
-	datapoints = list()
-	soup = BeautifulSoup(xml_content,'lxml')
-	data = soup.find_all('content')
-	keys = ('date', 'BC_3MONTH', 'BC_6MONTH', 'BC_1YEAR', 'BC_2YEAR', 'BC_3YEAR', 'BC_5YEAR', 'BC_7YEAR', 'BC_10YEAR', 'BC_20YEAR', 'BC_30YEAR', 'BC_30YEARDISPLAY')
-	for datum in data:
-		values = datum.text.strip().splitlines()
-       # FIXME: workds fine, but does not look very explict 
-		values[1] = values[1][:10]
-		datapoints.append(dict(zip(keys,values[1:])))
-       # end ---- 
-	return datapoints
+BC_KEYS = ['BC_3MONTH', 'BC_6MONTH',  'BC_1YEAR',  'BC_2YEAR', 'BC_3YEAR', 
+            'BC_5YEAR',  'BC_7YEAR', 'BC_10YEAR', 'BC_20YEAR', 'BC_30YEAR', 
+            'BC_30YEARDISPLAY'] 
 
-if __name__ == "__main__":
-    # TODO: extract a list of dictionaries like *check_point* from XML_CONTENT
-    #       using BeautifulSop and/or ElementTree in Python 3.
-    #
-    #       Must pass asserts below:   
-        
-    d = get_datapoints(XML_CONTENT)
-    # ERROR:
-    assert d[0] == check_point
-    assert len(d) == 10                    
+def yield_datapoints(xml_content: str)-> list:
+    """Parse XML string and yield one dictionary per date."""
+    soup = BeautifulSoup(xml_content,'xml')
+    data = soup.find_all('content')
+    for datum in data:        
+        cur_dict = dict((key, float(datum.find(key).text)) for key in BC_KEYS)
+        # FIXME LOW: use datetime to collect date, .text[:10] is a stub 
+        date_dict = dict(date=datum.find('NEW_DATE').text[:10])
+        # end FIXME ---
+        cur_dict.update(date_dict)  
+        yield(cur_dict)
+
+# DONE: extract a list of dictionaries like *check_point* from XML_CONTENT
+#       using BeautifulSop and/or ElementTree in Python 3.
+d = list(yield_datapoints(xml_content = XML_CONTENT))
+assert d[0] == check_point #get_datapoints(XML_CONTENT)[0] == check_point
+assert len(d) == 10 #get_datapoints(XML_CONTENT)) == 10                    
