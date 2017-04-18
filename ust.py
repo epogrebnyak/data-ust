@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from bs4 import BeautifulSoup
 
 XML_CONTENT = """
 <pre>
@@ -311,6 +310,10 @@ http://data.treasury.gov/Feed.svc/DailyTreasuryYieldCurveRateData(6829)
 </entry>
 </pre>"""
 
+import requests 
+from bs4 import BeautifulSoup
+
+
 
 check_point = dict(date="2017-04-03"
  , BC_3MONTH = 0.79
@@ -328,6 +331,8 @@ check_point = dict(date="2017-04-03"
 BC_KEYS = ['BC_3MONTH', 'BC_6MONTH',  'BC_1YEAR',  'BC_2YEAR', 'BC_3YEAR', 
             'BC_5YEAR',  'BC_7YEAR', 'BC_10YEAR', 'BC_20YEAR', 'BC_30YEAR', 
             'BC_30YEARDISPLAY'] 
+DF_COLUMNS = ['date'] + BC_KEYS 
+
 
 def yield_datapoints(xml_content: str)-> list:
     """Parse XML string and yield one dictionary per date."""
@@ -346,3 +351,39 @@ def yield_datapoints(xml_content: str)-> list:
 d = list(yield_datapoints(xml_content = XML_CONTENT))
 assert d[0] == check_point #get_datapoints(XML_CONTENT)[0] == check_point
 assert len(d) == 10 #get_datapoints(XML_CONTENT)) == 10                    
+    
+def get_url(year: int)-> str:
+     return "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year={}".format(year)
+
+assert get_url(2017) == "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year=2017"
+
+
+def foo(year: int, force=True):
+    url = get_url(year) 
+    if force:
+        r = requests.get(url)
+    else:
+        pass
+        # value error
+    return yield_datapoints(r.content)
+
+# FIXME: 2017 is dattime current year
+YEARS = [2016] #[x for x in range(1990,2017+1)]
+
+import itertools
+
+def foo2():
+    return itertools.chain(foo(year) for year in YEARS)
+           
+#TODO: get_df(year)  
+
+import pandas as pd
+z = foo2()
+df = pd.DataFrame(*z)[DF_COLUMNS]
+df['date'] = pd.to_datetime(df['date'])
+df.set_index('date', inplace = True)
+df.to_excel("ust_daily.xlsx")
+mf = df.resample("M").mean().round(2)
+mf.insert(0, "month", mf.index.month)
+mf.insert(0, "year", mf.index.year)
+mf.to_excel("ust_month_average.xlsx")
