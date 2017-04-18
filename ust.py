@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from bs4 import BeautifulSoup
 
 XML_CONTENT = """
 <pre>
@@ -325,70 +326,25 @@ check_point = dict(date="2017-04-03"
  , BC_30YEARDISPLAY = 2.98) 
 
 def get_datapoints(xml_content):
-    # placeholder for parser code
-    return [check_point]
+	datapoints = list()
+	soup = BeautifulSoup(xml_content,'lxml')
+	data = soup.find_all('content')
+	keys = ('date', 'BC_3MONTH', 'BC_6MONTH', 'BC_1YEAR', 'BC_2YEAR', 'BC_3YEAR', 'BC_5YEAR', 'BC_7YEAR', 'BC_10YEAR', 'BC_20YEAR', 'BC_30YEAR', 'BC_30YEARDISPLAY')
+	for datum in data:
+		values = datum.text.strip().splitlines()
+       # FIXME: workds fine, but does not look very explict 
+		values[1] = values[1][:10]
+		datapoints.append(dict(zip(keys,values[1:])))
+       # end ---- 
+	return datapoints
 
-# TODO: extract a list of dictionaries like *check_point* from XML_CONTENT
-#       using BeautifulSop and/or ElementTree in Python 3.
-#
-#       Must pass asserts below:
-
-assert get_datapoints(XML_CONTENT)[0] == check_point
-assert len(get_datapoints(XML_CONTENT)) == 10   
-
-
-# ------------------------------------
-#
-#   NOT TODO - IGNORE COMMENTS BELOW
-#
-# ------------------------------------
-
-#import bs4 
-
-# from xml_content import XML_CONTENT
-# XML_URL = "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year=2017"
-
-
-# import xml.etree.ElementTree as ET
-#root = ET.fromstring(XML_CONTENT)
-   
-    
-    
-#fromstring() parses XML from a string directly into an Element, which is the root element of the parsed tree. Other parsing functions may create an ElementTree. Check the documentation to be sure.
-
-#As an Element, root has a tag and a dictionary of attributes:
-
-#>>>
-#>>> root.tag
-#'data'
-#>>> root.attrib
-#{}
-
-#It also has children nodes over which we can iterate:
-#
-#>>>
-#tags = [child for child in root]
-
-#for child in t.get:
-#     print (child.tag, child.attrib)    
-
-#for child in root:
-#     print(child.tag, child.attrib)
-#...
-#country {'name': 'Liechtenstein'}
-#country {'name': 'Singapore'}
-#country {'name': 'Panama'}
-#Children are nested, and we can access specific child nodes by index:
-#
-#>>>
-#>>> root[0][1].text
-#'2008'
-#
-
-#
-#soup1 = bs4.BeautifulSoup(XML_CONTENT, 'lxml')
-#soup2 = bs4.BeautifulSoup(XML_CONTENT, 'xml')
-
-#soup.find('declination').get_text(strip=True) # strip white-space
-
-                 
+if __name__ == "__main__":
+    # TODO: extract a list of dictionaries like *check_point* from XML_CONTENT
+    #       using BeautifulSop and/or ElementTree in Python 3.
+    #
+    #       Must pass asserts below:   
+        
+    d = get_datapoints(XML_CONTENT)
+    # ERROR:
+    assert d[0] == check_point
+    assert len(d) == 10                    
