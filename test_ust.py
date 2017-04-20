@@ -312,46 +312,60 @@ http://data.treasury.gov/Feed.svc/DailyTreasuryYieldCurveRateData(6829)
 </pre>"""
 
 CHECK_POINTS = {
-   2017:dict(date="2017-04-03"               
- , BC_1MONTH = 0.73
- , BC_3MONTH = 0.79
- , BC_6MONTH = 0.92
- , BC_1YEAR  = 1.02
- , BC_2YEAR  = 1.24
- , BC_3YEAR  = 1.47
- , BC_5YEAR  = 1.88
- , BC_7YEAR  = 2.16
- , BC_10YEAR = 2.35
- , BC_20YEAR = 2.71
- , BC_30YEAR = 2.98
- , BC_30YEARDISPLAY = 2.98) 
+    2017: dict(date="2017-04-03"
+               , BC_1MONTH=0.73
+               , BC_3MONTH=0.79
+               , BC_6MONTH=0.92
+               , BC_1YEAR=1.02
+               , BC_2YEAR=1.24
+               , BC_3YEAR=1.47
+               , BC_5YEAR=1.88
+               , BC_7YEAR=2.16
+               , BC_10YEAR=2.35
+               , BC_20YEAR=2.71
+               , BC_30YEAR=2.98
+               , BC_30YEARDISPLAY=2.98)
 }
 
-#NOT TODO: extend CHECK_POINTS for each year in 1990:2016. 
-#          may use actual parsing data for this  
+# NOT TODO: extend CHECK_POINTS for each year in 1990:2016.
+#          (may use actual parsing data for 1990:2016)  
+
+# NOT TODO: check data in pandas DataFrame
 
 import ust
 
+
 def test_sample_string():
-    pts = list(ust.yield_datapoints_from_string(xml_content = XML_CONTENT_2017))
+    pts = list(ust.yield_datapoints_from_string(xml_content=XML_CONTENT_2017))
     assert CHECK_POINTS[2017] in pts
-    assert pts[0] == CHECK_POINTS[2017] 
+    assert pts[0] == CHECK_POINTS[2017]
     assert len(pts) == 10
     assert len(pts[0]) == 13
 
 
 def test_2017_web_call():
-    # WARNING: calling API too often causes temporary error
     content = ust.get_xml_content_from_web(2017)
     pts = list(ust.yield_datapoints_from_string(content))
     assert CHECK_POINTS[2017] in pts
 
-    
+
 def test_url():
-    assert ust.get_url(2017) == "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year=2017"
-              
-              
+    assert ust.get_url(
+        2017) == "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year=2017"
+
+
+def replicate_no_data_error():
+    """Causes server overload and getting html file instead of xml.
+       WARNING: error may not replicate, seems to depend on your IP address."""
+    for i in range(10):
+        content = ust.get_web_xml(2002)
+        print(content[:100])
+        if not content.startswith("<?xml"):
+            ust.save_local_xml("error", content)
+
+
 if __name__ == "__main__":
     test_sample_string()
     test_url()
-    #test_2017_web_call()
+    # test_2017_web_call()
+    # replicate_no_data_error()
