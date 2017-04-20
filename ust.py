@@ -196,8 +196,12 @@ if __name__ == "__main__":
 # NOT TODO 1: docopt interface '''python ust.py 2017'''
 
 # NOT TODO 2: read all-time xml
-#           https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldall
+#             https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldall
 
 # NOT TODO 3: check for excel file permission error at start of script
+
+# NOT TODO  : bokeh visualisation
+
+# NOT TODO  : latest values in readme.md, possibly using mako
 
 # ----------------------------------------------------------------------------
