@@ -40,6 +40,7 @@ def as_float(s: str):
 def yield_datapoints_from_string(xml_content: str)-> iter:
     """Parse XML string and yield one dictionary per date."""
     soup = bs4.BeautifulSoup(xml_content,'xml')
+    # maybe data = soup.find_all('content',type="application/xml")       
     data = soup.find_all('content')
     for datum in data:        
         cur_dict = dict((key, as_float(datum.find(key).text)) for key in BC_KEYS)
