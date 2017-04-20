@@ -52,11 +52,8 @@ def yield_datapoints_from_string_2(xml_content: str) -> iter:
     soup = bs4.BeautifulSoup(xml_content, 'xml')
     properties = soup.find_all('properties')
     for prop in properties:
+        point = dict(date=get_date(prop.find('NEW_DATE')))
         children = prop.findChildren()
-        # FIXME: this should use field name 'NEW_DATE', not absolute referencing
-        #        probably .find('NEW_DATE') is better
-        point = dict(date=get_date(children[1].text))
-        # ----
         for child in children:
             if child.name.startswith('BC_'):
                 point[child.name] = float(child.text)
@@ -168,10 +165,14 @@ def update_dfs():
     years = range(max(df0.index).year, datetime.today().year + 1)
     df1 = get_dfs(years)
     # -----------------
-    # TODO: merge df0 and df1, replacing old values in df0 with new values 
-    #       from df1    
-    # df = <merge result>
+    # merge df0 and df1, replacing old values in df0 with new values from df1
+    # concat - to concatenate all rows in df1 to df0
+    # reset_index - to move the 'date' index to become a column, for dropping duplicates
+    # drop_duplicates - dropping duplicates based on 'date' column while keeping the last occurence. 
+    #                   that will be the latest data
+    # reset_index - resetting the index using the 'date' column once again
     # -----------------
+    df = pd.concat([df0, df1]).reset_index().drop_duplicates(subset='date', keep='last').set_index('date')
     df.to_csv(CSV_PATH)
     return df
 
