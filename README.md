@@ -1,5 +1,7 @@
 # US Treasuries Yield Curve Data
 
+[![Build Status](https://travis-ci.org/epogrebnyak/ust.svg?branch=master)](https://travis-ci.org/epogrebnyak/ust)
+
 Source page: <https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yield> 
 
 Excel files:
