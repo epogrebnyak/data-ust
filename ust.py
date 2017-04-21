@@ -11,6 +11,7 @@ BC_KEYS = ['BC_1MONTH',
            'BC_3MONTH', 'BC_6MONTH', 'BC_1YEAR', 'BC_2YEAR', 'BC_3YEAR',
            'BC_5YEAR', 'BC_7YEAR', 'BC_10YEAR', 'BC_20YEAR', 'BC_30YEAR',
            'BC_30YEARDISPLAY']
+           
 DF_COLUMNS = ['date'] + BC_KEYS
 
 CSV_PATH = 'ust.csv'
@@ -158,51 +159,60 @@ def to_monthly_average(df: pd.DataFrame):
 
 
 def update_dfs():
-    #  - when updating read csv in pandas and detect last year
-    #  - read from last year in csv to pandas, overwriting local files
-    #  - concat and replace with existing data in df
+    """Update ust.csv: 
+    - 
+    """
     df0 = pd.read_csv(CSV_PATH, index_col=0, converters={0: pd.to_datetime})
+    # Detect last year to current year range. This will usually be just one last year. 
     years = range(max(df0.index).year, datetime.today().year + 1)
+    # Read last year from web
     df1 = get_dfs(years)
     # -----------------
-    # merge df0 and df1, replacing old values in df0 with new values from df1
-    # concat - to concatenate all rows in df1 to df0
-    # reset_index - to move the 'date' index to become a column, for dropping duplicates
-    # drop_duplicates - dropping duplicates based on 'date' column while keeping the last occurence. 
-    #                   that will be the latest data
-    # reset_index - resetting the index using the 'date' column once again
-    # -----------------
+    # Merge df0 and df1, replacing old values in df0 with new values from df1:
+    #    concat - to concatenate all rows in df1 to df0
+    #    reset_index - to move the 'date' index to become a column, for dropping duplicates
+    #    drop_duplicates - dropping duplicates based on 'date' column while keeping the last occurence. 
+    #                      that will be the latest data
+    #    reset_index - resetting the index using the 'date' column once again
     df = pd.concat([df0, df1]).reset_index().drop_duplicates(subset='date', keep='last').set_index('date')
+    # -----------------
     df.to_csv(CSV_PATH)
     return df
 
-
-if __name__ == "__main__":
+def get_dfs_from_scratch():
     cur_year = datetime.today().year
     YEARS = [x for x in range(1990, cur_year + 1)]
-    # YEARS = [2017]
-    # daily data
     dfs = [get_df(year) for year in YEARS]
-    df = pd.concat(dfs)
+    return pd.concat(dfs)
+
+if __name__ == "__main__":
+    # daily data
+    df = update_dfs()
     df.to_excel("ust_daily.xlsx")
     # monthly averages
     mf = to_monthly_average(df)
     mf.to_excel("ust_month_average.xlsx")
-
-
-
+    
 
 # ------------------------------------------------------- Developement notes:
 
-# NOT TODO 1: docopt interface '''python ust.py 2017'''
+# MAYBE
+#     5: latest values in readme.md, possibly using mako
 
-# NOT TODO 2: read all-time xml
-#             https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldall
+#     6: cron + git push to get new files daily
 
-# NOT TODO 3: check for excel file permission error at start of script
+#     7: coverage.io error
 
-# NOT TODO  : bokeh visualisation
 
-# NOT TODO  : latest values in readme.md, possibly using mako
+# NOT TODO's 
+
+#     1: docopt interface '''python ust.py 2017'''
+
+#     2: read all-time xml
+#        https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldall
+
+#     3: check for excel file permission error at start of script
+
+#     4: bokeh visualisation, animation?
 
 # ----------------------------------------------------------------------------
