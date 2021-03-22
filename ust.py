@@ -41,7 +41,7 @@ def get_xml_content_from_web(year: int) -> str:
     """Safely return XML content as string"""
     content = get_web_xml(year)
     if "Error" in content:
-        # when calling API too error emerges. Should not be a problem with local files.
+        # when calling API too often an error emerges. Should not be a problem with local files.
         raise ValueError("Cannot read {} from web. Try again later.".format(year))
     else:
         return content
@@ -84,10 +84,9 @@ def get_date(string):
 def as_float(s: str):
     # Needed to work around omissions in 30yr data starting year 2002
     try:
-        x = float(s)
-        return x
+        return float(s)
     except:
-        # NOFIX: some stable NA, accepted by pandas, is better.
+        # FIXME: some stable NA, accepted by pandas, is better.
         return 0
 
 
@@ -126,20 +125,33 @@ def get_df(year):
 def get_dfs(year_start, year_end):
     years = range(year_start, year_end + 1)
     dfs = [get_df(year) for year in years]
-    return pd.concat(dfs).sort_index()
+    df = pd.concat(dfs).sort_index()
+    return df[(df.sum(axis=1) != 0)]
+
+def today():
+    from datetime import datetime
+    return datetime.today().year
 
 
-if not os.path.exists("ust.csv"):
+def update():
+    save_year(year=today())  
     df = get_dfs(1990, 2021)
-    df.to_csv("ust.csv")
+    df.to_csv("ust.csv")  
+    
 
-df = pd.read_csv("ust.csv", parse_dates=["date"]).set_index("date")
+if __name__ == "__main__":
+    if not os.path.exists("ust.csv"):
+        update()
 
-ax = df[["BC_3MONTH", "BC_10YEAR"]].plot()
+    df = pd.read_csv("ust.csv", parse_dates=["date"]).set_index("date")
+    ax = df[["BC_3MONTH", "BC_10YEAR"]].plot()
 
-import matplotlib.dates as dates
-import matplotlib.pyplot as plt
+    # refine plot
+    import matplotlib.dates as dates
+    import matplotlib.pyplot as plt
 
-ax.xaxis.set_major_locator(dates.YearLocator(5))
-ax.xaxis.set_major_formatter(dates.DateFormatter("%Y"))
-plt.tight_layout()
+    ax.xaxis.set_major_locator(dates.YearLocator(5))
+    ax.xaxis.set_major_formatter(dates.DateFormatter("%Y"))
+    plt.tight_layout()
+    
+    plt.savefig("ust.png")
