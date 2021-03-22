@@ -1,5 +1,3 @@
 requests 
 bs4
 pandas
-lxml==3.7.3
-codecov
