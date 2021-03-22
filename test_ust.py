@@ -312,23 +312,25 @@ http://data.treasury.gov/Feed.svc/DailyTreasuryYieldCurveRateData(6829)
 </pre>"""
 
 CHECK_POINTS = {
-    2017: dict(date="2017-04-03"
-               , BC_1MONTH=0.73
-               , BC_3MONTH=0.79
-               , BC_6MONTH=0.92
-               , BC_1YEAR=1.02
-               , BC_2YEAR=1.24
-               , BC_3YEAR=1.47
-               , BC_5YEAR=1.88
-               , BC_7YEAR=2.16
-               , BC_10YEAR=2.35
-               , BC_20YEAR=2.71
-               , BC_30YEAR=2.98
-               , BC_30YEARDISPLAY=2.98)
+    2017: dict(
+        date="2017-04-03",
+        BC_1MONTH=0.73,
+        BC_3MONTH=0.79,
+        BC_6MONTH=0.92,
+        BC_1YEAR=1.02,
+        BC_2YEAR=1.24,
+        BC_3YEAR=1.47,
+        BC_5YEAR=1.88,
+        BC_7YEAR=2.16,
+        BC_10YEAR=2.35,
+        BC_20YEAR=2.71,
+        BC_30YEAR=2.98,
+        BC_30YEARDISPLAY=2.98,
+    )
 }
 
 # NOT TODO: extend CHECK_POINTS for each year in 1990:2016.
-#          (may use actual parsing data for 1990:2016)  
+#          (may use actual parsing data for 1990:2016)
 
 # NOT TODO: check data in pandas DataFrame
 
@@ -350,13 +352,15 @@ def test_2017_web_call():
 
 
 def test_url():
-    assert ust.get_url(
-        2017) == "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year=2017"
+    assert (
+        ust.get_url(2017)
+        == "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year=2017"
+    )
 
 
 def replicate_no_data_error():
     """Causes server overload and getting html file instead of xml.
-       WARNING: error may not replicate, seems to depend on your IP address."""
+    WARNING: error may not replicate, seems to depend on your IP address."""
     for i in range(10):
         content = ust.get_web_xml(2002)
         print(content[:100])
