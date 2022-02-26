@@ -128,30 +128,27 @@ def get_dfs(year_start, year_end):
     df = pd.concat(dfs).sort_index()
     return df[(df.sum(axis=1) != 0)]
 
+
 def today():
     from datetime import datetime
-    return datetime.today().year
+
+    return datetime.today()
 
 
 def update():
-    save_year(year=today())  
-    df = get_dfs(1990, 2021)
-    df.to_csv("ust.csv")  
-    
+    current_year = today().year
+    save_year(year=current_year)
+    df = get_dfs(1990, current_year)
+    df.to_csv("ust.csv")
 
-if __name__ == "__main__":
-    if not os.path.exists("ust.csv"):
-        update()
 
-    df = pd.read_csv("ust.csv", parse_dates=["date"]).set_index("date")
-    ax = df[["BC_3MONTH", "BC_10YEAR"]].plot()
-
-    # refine plot
+def make_chart(df, output_file="ust.png"):
     import matplotlib.dates as dates
     import matplotlib.pyplot as plt
 
+    ax = df[["BC_3MONTH", "BC_10YEAR"]].plot()
     ax.xaxis.set_major_locator(dates.YearLocator(5))
     ax.xaxis.set_major_formatter(dates.DateFormatter("%Y"))
     plt.tight_layout()
-    
-    plt.savefig("ust.png")
+
+    plt.savefig(output_file)
