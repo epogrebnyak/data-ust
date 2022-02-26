@@ -1,5 +1,6 @@
-import ust
 import os
+import pandas as pd
+import ust
 
 # Download xml files
 # current_year = ust.today().year
@@ -8,9 +9,7 @@ import os
 
 if not os.path.exists("ust.csv"):
     update()
-    df = pd.read_csv("ust.csv", parse_dates=["date"]).set_index("date")
-    make_chart(df)
 
 
 df = pd.read_csv("ust.csv", parse_dates=["date"]).set_index("date")
-make_chart()
+ust.make_chart(df)
