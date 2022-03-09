@@ -1,17 +1,48 @@
 # US Treasuries Yield Curve Data
 
-Build a local file (ust.csv) with US Treasuries yields by maturity: 
-
-```
-python ust.py
-```
-
 ![](ust.png)
 
-Data source page: <https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yield> 
+Data source page: ["Daily Treasury Par Yield Curve Rates"](https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2022) 
 
-CSV file:
+CSV file (1990-present):
 
- - [daily yields](https://github.com/epogrebnyak/ust/blob/master/ust.csv)
+ - [daily yields](https://raw.githubusercontent.com/epogrebnyak/data-ust/master/ust.csv)
  
+## How to use
 
+Build a local file (`rates.csv`) with US Treasuries yields by maturity: 
+
+```python
+import os
+import pandas as pd
+from ust import save_rates, force_save, read_rates
+
+# save UST yield rates to local folder for selected year range
+# start_year can go back to 1990
+save_rates(start_year=2020, end_year=2022, folder="./xml")
+
+# force update last year
+force_save(2022, folder="./xml")
+
+# read UST yield rates as pandas dataframe
+df = read_rates(start_year=2021, end_year=2022, folder="./xml")
+
+# save as single CSV file
+df.to_csv("rates.csv")
+
+"""
+            BC_1MONTH  BC_3MONTH  BC_6MONTH  ...  BC_20YEAR  BC_30YEAR  BC_30YEARDISPLAY
+date                                         ...                                        
+2021-01-04       0.09       0.09       0.09  ...       1.46       1.66              1.66
+2021-01-05       0.08       0.09       0.09  ...       1.49       1.70              1.70
+2021-01-06       0.09       0.09       0.09  ...       1.60       1.81              1.81
+2021-01-07       0.09       0.09       0.09  ...       1.64       1.85              1.85
+2021-01-08       0.08       0.08       0.09  ...       1.67       1.87              1.87
+...               ...        ...        ...  ...        ...        ...               ...
+2022-03-02       0.13       0.34       0.68  ...       2.32       2.24              2.24
+2022-03-03       0.19       0.38       0.69  ...       2.32       2.24              2.24
+2022-03-04       0.15       0.34       0.69  ...       2.23       2.16              2.16
+2022-03-07       0.17       0.38       0.75  ...       2.29       2.19              2.19
+2022-03-08       0.16       0.36       0.72  ...       2.34       2.24              2.24
+"""
+```

@@ -108,6 +108,9 @@ class Rates:
     def path(self):
         return os.path.join(self.folder, f"{self.year}.xml")
 
+    def exists(self):
+        return os.path.exists(self.path)
+
     def fetch_xml(self):
         return get_xml_content_from_web(self.year)
 
@@ -190,8 +193,7 @@ def get_df(year, folder=default_folder()):
 
 
 def get_dataframes(year_start, year_end, folder=default_folder()):
-    years = range(year_start, year_end + 1)
-    dfs = [get_df(year, folder) for year in years]
+    dfs = [get_df(year, folder) for year in years(year_start, year_end)]
     return concat_dataframes(dfs)
 
 
@@ -231,13 +233,23 @@ def years(start_year, end_year):
     return range(start_year, end_year + 1)
 
 
+def force_save(year, folder=default_folder()):
+    r = Rates(year, folder)
+    r.save_local()
+    print("Updated", r.path)
+
+
 def save_rates(start_year, end_year, folder=default_folder()):
     for year in years(start_year, end_year):
         r = Rates(year, folder)
-        r.save_local()
+        if not r.exists():
+            r.save_local()
+            print("Saved data for year", year)
+        else:
+            print("No action taken - file already exists", r.path)
 
 
-def get_rates(start_year, end_year, folder=default_folder()):
+def read_rates(start_year, end_year, folder=default_folder()):
     dfs = []
     for year in years(start_year, end_year):
         r = Rates(year, folder)
@@ -245,9 +257,10 @@ def get_rates(start_year, end_year, folder=default_folder()):
     return concat_dataframes(dfs)
 
 
-def update(folder=default_folder()):
+def draw(folder=default_folder()):
     current_year = year_now()
-    df = get_dataframes(1990, current_year, folder)
+    update_year()
+    df = read_rates(1990, current_year, folder)
     df.to_csv("ust.csv")
     make_chart(df)
 
