@@ -330,8 +330,6 @@ CHECK_POINTS = {
 }
 
 # NOT TODO: extend CHECK_POINTS for each year in 1990:2016.
-#          (may use actual parsing data for 1990:2016)
-
 # NOT TODO: check data in pandas DataFrame
 
 import ust
@@ -354,8 +352,17 @@ def test_2017_web_call():
 def test_url():
     assert (
         ust.get_url(2017)
-        == "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/pages/XmlView.aspx?data=yieldyear&year=2017"
+        == "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2017"
     )
+
+
+def test_rates_path():
+    r = ust.rates(2022)
+    assert r.path == "xml/2022.xml"
+
+
+def test_rates_pipeline():
+    assert len(ust.rates(2022).save_local().dataframe()) >= 45
 
 
 def replicate_no_data_error():
@@ -366,6 +373,10 @@ def replicate_no_data_error():
         print(content[:100])
         if not content.startswith("<?xml"):
             ust.save_local_xml("error", content)
+
+
+def test_data_after_2022_02_18_should_be_available():
+    assert "2022-02-22" in (x["date"] for x in ust.get_datapoints(2022))
 
 
 if __name__ == "__main__":
