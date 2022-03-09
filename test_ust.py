@@ -365,6 +365,14 @@ def test_rates_pipeline():
     assert len(ust.rates(2022).save_local().dataframe()) >= 45
 
 
+def test_two_years_on_separate_folder():
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        df = ust.from_years([1990, 2021], temp_dir)
+        assert len(df) == 501
+
+
 def replicate_no_data_error():
     """Causes server overload and getting html file instead of xml.
     WARNING: error may not replicate, seems to depend on your IP address."""

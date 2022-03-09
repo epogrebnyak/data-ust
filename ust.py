@@ -123,6 +123,11 @@ class Rates:
     def dataframe(self):
         return to_dataframe(self.yield_datapoints())
 
+    def data(self):
+        xml_content = read(self.path)
+        soup = bs4.BeautifulSoup(xml_content, "xml")
+        return soup.find_all("content")
+
 
 def get_date(string):
     dt = datetime.strptime(string, "%Y-%m-%dT%H:%M:%S")
@@ -143,9 +148,19 @@ def yield_datapoints_from_string(xml_content: str) -> iter:
     soup = bs4.BeautifulSoup(xml_content, "xml")
     data = soup.find_all("content")
     for datum in data:
-        cur_dict = dict((key, as_float(datum.find(key).text)) for key in BC_KEYS)
+        cur_dict = dict((key, elem(datum, key)) for key in BC_KEYS)
         cur_dict["date"] = get_date(datum.find("NEW_DATE").text)
         yield cur_dict
+
+
+def elem(datum, key):
+    # Needed to work around omissions in 30yr data starting year 2002
+    # Also 1990 is not like 2022
+    x = datum.find(key)
+    try:
+        return float(x.text)
+    except (ValueError, AttributeError):
+        return pd.NA
 
 
 def save_datapoints_from_web(year):
@@ -169,17 +184,18 @@ def to_dataframe(gen):
     return df
 
 
-def get_df(year):
-    gen = get_datapoints(year)
-    df = pd.DataFrame(gen)[DF_COLUMNS]
-    df["date"] = pd.to_datetime(df["date"])
-    df.set_index("date", inplace=True)
-    return df
+def get_df(year, folder=default_folder()):
+    r = Rates(year, folder)
+    return r.dataframe()
 
 
-def get_dataframes(year_start, year_end):
+def get_dataframes(year_start, year_end, folder=default_folder()):
     years = range(year_start, year_end + 1)
-    dfs = [get_df(year) for year in years]
+    dfs = [get_df(year, folder) for year in years]
+    return concat_dataframes(dfs)
+
+
+def concat_dataframes(dfs):
     df = pd.concat(dfs).sort_index()
     return df[(df.sum(axis=1) != 0)]
 
@@ -190,10 +206,48 @@ def year_now():
     return datetime.today().year
 
 
-def update():
+def available_years():
+    return range(1990, year_now() + 1)
+
+
+def from_years(years: list, folder: str):
+    dfs = []
+    for year in years:
+        r = Rates(year, folder)
+        r.save_local()
+        dfs.append(r.dataframe())
+    return concat_dataframes(dfs)
+
+
+def check_year(year):
+    if year not in available_years():
+        raise ValueError(f"{year} not supported.")
+
+
+def years(start_year, end_year):
+    check_year(start_year)
+    check_year(end_year)
+    assert start_year <= end_year
+    return range(start_year, end_year + 1)
+
+
+def save_rates(start_year, end_year, folder=default_folder()):
+    for year in years(start_year, end_year):
+        r = Rates(year, folder)
+        r.save_local()
+
+
+def get_rates(start_year, end_year, folder=default_folder()):
+    dfs = []
+    for year in years(start_year, end_year):
+        r = Rates(year, folder)
+        dfs.append(r.dataframe())
+    return concat_dataframes(dfs)
+
+
+def update(folder=default_folder()):
     current_year = year_now()
-    save_year(year=current_year)
-    df = get_dataframes(1990, current_year)
+    df = get_dataframes(1990, current_year, folder)
     df.to_csv("ust.csv")
     make_chart(df)
 
