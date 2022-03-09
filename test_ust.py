@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """Pytest test cases for ust.py"""
 
+import tempfile
+
+import ust
+
 XML_CONTENT_2017 = """
 <pre>
 <title xmlns="http://www.w3.org/2005/Atom" type="text">DailyTreasuryYieldCurveRateData</title>
@@ -329,11 +333,6 @@ CHECK_POINTS = {
     )
 }
 
-# NOT TODO: extend CHECK_POINTS for each year in 1990:2016.
-# NOT TODO: check data in pandas DataFrame
-
-import ust
-
 
 def test_sample_string():
     pts = list(ust.yield_datapoints_from_string(xml_content=XML_CONTENT_2017))
@@ -357,17 +356,18 @@ def test_url():
 
 
 def test_rates_path():
-    r = ust.rates(2022)
+    r = ust.Rates(2022, "xml")
     assert r.path == "xml/2022.xml"
 
 
 def test_rates_pipeline():
-    assert len(ust.rates(2022).save_local().dataframe()) >= 45
+    with tempfile.TemporaryDirectory() as temp_dir:
+      r = ust.Rates(2022, temp_dir)
+      r.save_local()  
+      assert len(r.dataframe()) >= 45
 
 
 def test_two_years_on_separate_folder():
-    import tempfile
-
     with tempfile.TemporaryDirectory() as temp_dir:
         df = ust.from_years([1990, 2021], temp_dir)
         assert len(df) == 501
@@ -376,19 +376,11 @@ def test_two_years_on_separate_folder():
 def replicate_no_data_error():
     """Causes server overload and getting html file instead of xml.
     WARNING: error may not replicate, seems to depend on your IP address."""
-    for i in range(10):
-        content = ust.get_web_xml(2002)
-        print(content[:100])
-        if not content.startswith("<?xml"):
-            ust.save_local_xml("error", content)
+    pass
+
 
 
 def test_data_after_2022_02_18_should_be_available():
-    assert "2022-02-22" in (x["date"] for x in ust.get_datapoints(2022))
-
-
-if __name__ == "__main__":
-    test_sample_string()
-    test_url()
-    # test_2017_web_call()
-    # replicate_no_data_error()
+    with tempfile.TemporaryDirectory() as temp_dir:
+        r = ust.Rates(2022, temp_dir).save_local()
+        assert "2022-02-22" in (x["date"] for x in r.yield_datapoints())

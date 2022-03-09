@@ -1,6 +1,8 @@
 import os
+
 import pandas as pd
-from ust import save_rates, force_save, read_rates
+
+from ust import force_save, read_rates, save_rates
 
 # save UST yield rates to local folder for selected year range
 save_rates(start_year=2020, end_year=2022, folder="./xml")

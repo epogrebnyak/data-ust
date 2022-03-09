@@ -1,9 +1,11 @@
-import requests
 import os
-import bs4
-from datetime import datetime
-import pandas as pd
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Iterable
+
+import bs4
+import pandas as pd
+import requests
 
 BC_KEYS = [
     "BC_1MONTH",
@@ -45,7 +47,7 @@ def fetch(url: str):
 def raise_if_empty(content: str) -> str:
     if "Error" in content:
         # when calling API too often an error emerges.
-        raise ValueError("Cannot read {} from web. Try again later.".format(url))
+        raise ValueError("Cannot read from web. Try again later.")
     else:
         return content
 
@@ -137,16 +139,7 @@ def get_date(string):
     return dt.strftime("%Y-%m-%d")
 
 
-def as_float(s: str):
-    # Needed to work around omissions in 30yr data starting year 2002
-    try:
-        return float(s)
-    except:
-        # FIXME: some stable NA, accepted by pandas, is better.
-        return pd.NA
-
-
-def yield_datapoints_from_string(xml_content: str) -> iter:
+def yield_datapoints_from_string(xml_content) -> Iterable[dict]:
     """Parse XML string and yield one dictionary per date."""
     soup = bs4.BeautifulSoup(xml_content, "xml")
     data = soup.find_all("content")
@@ -169,15 +162,6 @@ def elem(datum, key):
 def save_datapoints_from_web(year):
     xml_content = get_xml_content_from_web(year)
     save_local_xml(year, xml_content)
-
-
-def get_datapoints(year: int):
-    if not os.path.exists(filepath(year)):
-        save_year(year)
-        print("Read {} data from web and saved to local xml file.".format(year))
-    xml_content = read_local_xml(year)
-    print("Read {} data from local xml file.".format(year))
-    return yield_datapoints_from_string(xml_content)
 
 
 def to_dataframe(gen):
@@ -259,7 +243,7 @@ def read_rates(start_year, end_year, folder=default_folder()):
 
 def draw(folder=default_folder()):
     current_year = year_now()
-    update_year()
+    force_save(current_year)
     df = read_rates(1990, current_year, folder)
     df.to_csv("ust.csv")
     make_chart(df)
