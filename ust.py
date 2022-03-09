@@ -151,12 +151,13 @@ def yield_datapoints_from_string(xml_content) -> Iterable[dict]:
 
 def elem(datum, key):
     # Needed to work around omissions in 30yr data starting year 2002
-    # Also 1990 is not like 2022
+    # Also parsing 1990 is not like 2022
     x = datum.find(key)
     try:
         return float(x.text)
     except (ValueError, AttributeError):
-        return pd.NA
+        # pd.NA is not stable
+        return 0
 
 
 def save_datapoints_from_web(year):
@@ -246,10 +247,10 @@ def draw(folder=default_folder()):
     force_save(current_year)
     df = read_rates(1990, current_year, folder)
     df.to_csv("ust.csv")
-    make_chart(df)
+    make_chart(df, "ust.png")
 
 
-def make_chart(df, output_file="ust.png"):
+def make_chart(df, output_file):
     import matplotlib.dates as dates
     import matplotlib.pyplot as plt
 

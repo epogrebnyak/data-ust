@@ -362,9 +362,9 @@ def test_rates_path():
 
 def test_rates_pipeline():
     with tempfile.TemporaryDirectory() as temp_dir:
-      r = ust.Rates(2022, temp_dir)
-      r.save_local()  
-      assert len(r.dataframe()) >= 45
+        r = ust.Rates(2022, temp_dir)
+        r.save_local()
+        assert len(r.dataframe()) >= 45
 
 
 def test_two_years_on_separate_folder():
@@ -377,7 +377,6 @@ def replicate_no_data_error():
     """Causes server overload and getting html file instead of xml.
     WARNING: error may not replicate, seems to depend on your IP address."""
     pass
-
 
 
 def test_data_after_2022_02_18_should_be_available():
