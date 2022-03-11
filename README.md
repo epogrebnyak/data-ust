@@ -33,7 +33,7 @@ df = read_rates(start_year=2020, end_year=2022, folder="./xml")
 df.to_csv("rates.csv")
 
 # read back later
-df = pd.read_csv("ust.csv", parse_dates=["date"]).set_index("date")
+df = pd.read_csv("rates.csv", parse_dates=["date"]).set_index("date")
 
 """
             BC_1MONTH  BC_3MONTH  BC_6MONTH  ...  BC_20YEAR  BC_30YEAR  BC_30YEARDISPLAY
