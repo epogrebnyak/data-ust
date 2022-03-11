@@ -2,12 +2,13 @@ import os
 
 import pandas as pd
 
-from ust import force_save, read_rates, save_rates
+from ust import force_save, read_rates, save
 
-# save UST yield rates to local folder for selected year range
-save_rates(start_year=2020, end_year=2022, folder="./xml")
+# save UST yield rates to local folder for selected years
+for year in [2020, 2021, 2022]:
+    save(year, folder="./xml")
 
-# force update last year
+# force update last year (overwrites existing file)
 force_save(2022, folder="./xml")
 
 # read UST yield rates as pandas dataframe
@@ -15,7 +16,6 @@ df = read_rates(start_year=2021, end_year=2022, folder="./xml")
 
 # save as single CSV file
 df.to_csv("rates.csv")
-
 
 # read back later
 df = pd.read_csv("rates.csv", parse_dates=["date"]).set_index("date")

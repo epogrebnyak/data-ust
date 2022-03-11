@@ -224,6 +224,16 @@ def force_save(year, folder=default_folder()):
     print("Updated", r.path)
 
 
+def save(year, folder=default_folder()):
+    r = Rates(year, folder)
+    if not r.exists():
+        r.save_local()
+        print("Saved data for year", year)
+    else:
+        print("No action taken - file already exists", r.path)
+
+
+
 def save_rates(start_year, end_year, folder=default_folder()):
     for year in years(start_year, end_year):
         r = Rates(year, folder)
