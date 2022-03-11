@@ -17,7 +17,7 @@ Build a local file (`rates.csv`) with US Treasuries yields by maturity:
 ```python
 import os
 import pandas as pd
-from ust import save_rates, force_save, read_rates
+from ust import save, force_save, read_rates
 
 # save UST yield rates to local folder for selected years
 for year in [2020, 2021, 2022]:
