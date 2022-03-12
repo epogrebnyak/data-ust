@@ -7,6 +7,8 @@ import bs4
 import pandas as pd
 import requests
 
+__all__ = ["save_xml", "read_rates", "available_years"]
+
 BC_KEYS = [
     "BC_1MONTH",
     "BC_3MONTH",
@@ -72,28 +74,14 @@ def filepath(year: int, folder=None):
     return os.path.join(folder, filename)
 
 
-def read_local_xml(year):
-    return read(path=filepath(year))
-
-
 def read(path):
     with open(path, "r") as f:
         return f.read()
 
 
-def save_local_xml(year: int, content: str):
-    path = filepath(year)
-    save(path, content)
-
-
 def save(path: str, content: str):
     with open(path, "w") as f:
         f.write(content)
-
-
-def save_year(year: int):
-    content = get_xml_content_from_web(year)
-    save_local_xml(year, content)
 
 
 def rates(year):
@@ -159,11 +147,6 @@ def elem(datum, key):
     except (ValueError, AttributeError):
         # pd.NA is not stable
         return 0
-
-
-def save_datapoints_from_web(year):
-    xml_content = get_xml_content_from_web(year)
-    save_local_xml(year, xml_content)
 
 
 def to_dataframe(gen):
