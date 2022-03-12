@@ -84,11 +84,6 @@ def save(path: str, content: str):
         f.write(content)
 
 
-def rates(year):
-    """Return Rates(year) for default location."""
-    return Rates(year, default_folder())
-
-
 @dataclass
 class Rates:
     year: int
@@ -156,11 +151,6 @@ def to_dataframe(gen):
     return df
 
 
-def get_df(year, folder):
-    r = Rates(year, folder)
-    return r.dataframe()
-
-
 def concat_dataframes(dfs):
     df = pd.concat(dfs).sort_index()
     return df[(df.sum(axis=1) != 0)]
@@ -176,15 +166,6 @@ def available_years():
     return list(range(1990, year_now() + 1))
 
 
-def from_years(years: list, folder: str):
-    dfs = []
-    for year in years:
-        r = Rates(year, folder)
-        r.save_local()
-        dfs.append(r.dataframe())
-    return concat_dataframes(dfs)
-
-
 def check_year(year):
     if year not in available_years():
         raise ValueError(f"{year} not supported.")
@@ -194,7 +175,7 @@ def years(start_year, end_year):
     check_year(start_year)
     check_year(end_year)
     assert start_year <= end_year
-    return range(start_year, end_year + 1)
+    return list(range(start_year, end_year + 1))
 
 
 def save_xml(year, folder, overwrite=False):
@@ -224,12 +205,20 @@ def save_rates(start_year, end_year, folder):
         soft_save(year, folder)
 
 
-def read_rates(start_year, end_year, folder):
-    dfs = []
-    for year in years(start_year, end_year):
-        r = Rates(year, folder)
-        dfs.append(r.dataframe())
+# Used in testing to read both 1990 and 2021.
+def from_years(years: list, folder: str):
+    dfs = [get_df(year, folder) for year in years]
     return concat_dataframes(dfs)
+
+
+def read_rates(start_year, end_year, folder):
+    year_range = years(start_year, end_year)
+    return from_years(year_range, folder)
+
+
+def get_df(year, folder):
+    r = Rates(year, folder)
+    return r.dataframe()
 
 
 def draw(folder=default_folder()):

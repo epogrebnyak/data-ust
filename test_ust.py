@@ -369,6 +369,8 @@ def test_rates_pipeline():
 
 def test_two_years_on_separate_folder():
     with tempfile.TemporaryDirectory() as temp_dir:
+        ust.save_xml(1990, temp_dir)
+        ust.save_xml(2021, temp_dir)
         df = ust.from_years([1990, 2021], temp_dir)
         assert len(df) == 501
 
