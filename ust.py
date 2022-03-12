@@ -134,7 +134,7 @@ class Rates:
         return soup.find_all("content")
 
 
-def get_date(string):
+def get_date(string) -> str:
     dt = datetime.strptime(string, "%Y-%m-%dT%H:%M:%S")
     return dt.strftime("%Y-%m-%d")
 
@@ -145,7 +145,8 @@ def yield_datapoints_from_string(xml_content) -> Iterable[dict]:
     data = soup.find_all("content")
     for datum in data:
         cur_dict = dict((key, elem(datum, key)) for key in BC_KEYS)
-        cur_dict["date"] = get_date(datum.find("NEW_DATE").text)
+        # ignore type check with pyright below
+        cur_dict["date"] = get_date(datum.find("NEW_DATE").text)  # type: ignore
         yield cur_dict
 
 
@@ -194,7 +195,7 @@ def year_now():
 
 
 def available_years():
-    return range(1990, year_now() + 1)
+    return list(range(1990, year_now() + 1))
 
 
 def from_years(years: list, folder: str):
@@ -218,13 +219,20 @@ def years(start_year, end_year):
     return range(start_year, end_year + 1)
 
 
-def force_save(year, folder=default_folder()):
+def save_xml(year, folder, overwrite=False):
+    if overwrite:
+        force_save(year, folder)
+    else:
+        soft_save(year, folder)
+
+
+def force_save(year, folder):
     r = Rates(year, folder)
     r.save_local()
     print("Updated", r.path)
 
 
-def save(year, folder=default_folder()):
+def soft_save(year, folder):
     r = Rates(year, folder)
     if not r.exists():
         r.save_local()
@@ -233,18 +241,12 @@ def save(year, folder=default_folder()):
         print("No action taken - file already exists", r.path)
 
 
-
-def save_rates(start_year, end_year, folder=default_folder()):
+def save_rates(start_year, end_year, folder):
     for year in years(start_year, end_year):
-        r = Rates(year, folder)
-        if not r.exists():
-            r.save_local()
-            print("Saved data for year", year)
-        else:
-            print("No action taken - file already exists", r.path)
+        soft_save(year, folder)
 
 
-def read_rates(start_year, end_year, folder=default_folder()):
+def read_rates(start_year, end_year, folder):
     dfs = []
     for year in years(start_year, end_year):
         r = Rates(year, folder)
@@ -254,7 +256,7 @@ def read_rates(start_year, end_year, folder=default_folder()):
 
 def draw(folder=default_folder()):
     current_year = year_now()
-    force_save(current_year)
+    save_xml(current_year, folder, overwrite=True)
     df = read_rates(1990, current_year, folder)
     df.to_csv("ust.csv")
     make_chart(df, "ust.png")
