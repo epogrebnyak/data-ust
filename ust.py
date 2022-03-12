@@ -156,14 +156,9 @@ def to_dataframe(gen):
     return df
 
 
-def get_df(year, folder=default_folder()):
+def get_df(year, folder):
     r = Rates(year, folder)
     return r.dataframe()
-
-
-def get_dataframes(year_start, year_end, folder=default_folder()):
-    dfs = [get_df(year, folder) for year in years(year_start, year_end)]
-    return concat_dataframes(dfs)
 
 
 def concat_dataframes(dfs):
