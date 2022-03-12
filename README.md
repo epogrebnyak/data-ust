@@ -4,11 +4,12 @@
 
 Data source page: ["Daily Treasury Par Yield Curve Rates"](https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2022) 
 
-## Read existing dataset 
+## Read dataset from repo
 
 CSV file (1990-present): [daily UST yields](https://raw.githubusercontent.com/epogrebnyak/data-ust/master/ust.csv)
  
-```
+```python
+import pandas as pd
 url = "https://raw.githubusercontent.com/epogrebnyak/data-ust/master/ust.csv"
 df = pd.read_csv(df, parse_dates=["date"]).set_index("date")
 ```
